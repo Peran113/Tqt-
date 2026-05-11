@@ -24,8 +24,6 @@ header p{font-size:12px;color:#6b6b85;margin-top:3px}
 .iw{width:100%;height:118px;background:#0d0d18;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .iw img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;opacity:0;transition:opacity .2s}
 .iw img.loaded{opacity:1}
-.iw .em{font-size:30px;position:absolute;transition:opacity .2s}
-.iw img.loaded ~ .em{opacity:0}
 .cons{position:absolute;top:4px;left:4px;background:rgba(108,99,255,.9);color:#fff;font-size:8px;padding:2px 6px;border-radius:8px;z-index:2;font-weight:600}
 .bd{padding:8px 10px}
 .tt{font-size:10.5px;font-weight:600;line-height:1.3;min-height:28px;margin-bottom:5px;color:#e2e2f0}
@@ -49,8 +47,27 @@ header p{font-size:12px;color:#6b6b85;margin-top:3px}
 
 <script>
 // wsrv.nl proxy — url param doit contenir https:// sinon refusé
-function wp(path){return "https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/"+path+"&w=300&h=220&fit=cover&output=jpg&errorredirect=https://wsrv.nl/lichtenstein.jpg";}
-function wc(path){return "https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/commons/"+path+"&w=300&h=220&fit=cover&output=jpg&errorredirect=https://wsrv.nl/lichtenstein.jpg";}
+function wp(path){return "https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/"+path+"&w=300&h=220&fit=cover&output=jpg";}
+function wc(path){return "https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/commons/"+path+"&w=300&h=220&fit=cover&output=jpg";}
+
+const CONS_COLORS={
+  "Game Boy":"#8b5cf6","GBA":"#7c3aed","SNES":"#6d28d9","NES":"#dc2626",
+  "N64":"#2563eb","GameCube":"#7c3aed","DS":"#0891b2","3DS":"#0284c7",
+  "Wii":"#6366f1","Wii U":"#0ea5e9","Switch":"#e11d48","Switch 2":"#dc2626",
+  "PS1":"#1d4ed8","PS2":"#1e40af","PS5":"#1e3a8a","PSP/Vita":"#0f172a"
+};
+
+function makeSvgPlaceholder(name,cons){
+  const col=CONS_COLORS[cons]||"#6c63ff";
+  const words=name.split(" ");
+  const lines=[];
+  let cur="";
+  words.forEach(w=>{if((cur+" "+w).trim().length>14&&cur){lines.push(cur.trim());cur=w;}else{cur=(cur+" "+w).trim();}});
+  if(cur)lines.push(cur.trim());
+  const mid=lines.map((l,i)=>`<text x="50%" y="${50+(i-(lines.length-1)/2)*18}%" dominant-baseline="middle" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="sans-serif">${l}</text>`).join("");
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="220"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${col}"/><stop offset="100%" stop-color="${col}88"/></linearGradient></defs><rect width="300" height="220" fill="url(#g)"/><rect x="10" y="10" width="280" height="200" rx="8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>${mid}</svg>`;
+  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+}
 
 const G=[
 // ── GAME BOY ──────────────────────────────────────────────────────────
@@ -468,10 +485,9 @@ function render(){
     const d=document.createElement("div");
     d.className="card";
     d.innerHTML=`<div class="iw">
-      <span class="em">🎮</span>
       <img src="${g.img}" alt="${g.n}" loading="lazy"
            onload="this.classList.add('loaded')"
-           onerror="this.remove()">
+           onerror="this.src=makeSvgPlaceholder('${g.n.replace(/'/g,"\\'")}','${g.c}');this.classList.add('loaded')">
       <span class="cons">${g.c}</span>
     </div>
     <div class="bd">
