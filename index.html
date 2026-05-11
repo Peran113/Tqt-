@@ -46,7 +46,7 @@ header p{font-size:12px;color:#6b6b85;margin-top:3px}
 <div class="grid" id="grid"></div>
 
 <script>
-const RAWG_KEY = ""; // Colle ta clé gratuite ici → rawg.io/apidocs
+const RAWG_KEY = "0a1c73b0581d416d9853279817dde520";
 
 const CONS_COLORS={
   "Game Boy":"#8b5cf6","GBA":"#7c3aed","SNES":"#6d28d9","NES":"#dc2626",
@@ -67,7 +67,7 @@ function makeSvgPlaceholder(name,cons){
 }
 
 // Cache localStorage pour ne pas refaire les appels RAWG
-const _cache = JSON.parse(localStorage.getItem("rg_img")||"{");
+const _cache = JSON.parse(localStorage.getItem("rg_img")||"{}")
 
 // Mots à enlever du nom pour mieux chercher sur RAWG
 const STRIP = /\b(Game Boy|GBA|SNES|NES|N64|GameCube|DS|3DS|Wii U|Wii|Switch 2|Switch|PS1|PS2|PS5|PSP|Vita|GB|GBC|Original|Pocket|Micro|console|HD|3D|DX|Deluxe|Ultimate)\b/gi;
