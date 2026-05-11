@@ -46,9 +46,6 @@ header p{font-size:12px;color:#6b6b85;margin-top:3px}
 <div class="grid" id="grid"></div>
 
 <script>
-const IGDB_CLIENT_ID     = "0x3hxwzvs836lxq9oq4wrtq9kf2580";
-const IGDB_CLIENT_SECRET = "hu7t6a8bie5xhtjb4kk2aocvscgepq";
-
 const CONS_COLORS={
   "Game Boy":"#8b5cf6","GBA":"#7c3aed","SNES":"#6d28d9","NES":"#dc2626",
   "N64":"#2563eb","GameCube":"#7c3aed","DS":"#0891b2","3DS":"#0284c7",
@@ -67,43 +64,22 @@ function makeSvgPlaceholder(name,cons){
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
 
-const _cache=JSON.parse(localStorage.getItem("rg_img_v2")||"{}")
-const STRIP=/\b(Game Boy|GBA|SNES|NES|N64|GameCube|DS|3DS|Wii U|Wii|Switch 2|Switch|PS1|PS2|PS5|PSP|Vita|GB|GBC|Original|Pocket|Micro|console|HD|3D|DX|Deluxe|Ultimate)\b/gi;
+const _cache=JSON.parse(localStorage.getItem("rg_img_v3")||"{}")
+const STRIP=/\b(Game Boy|GBA|SNES|NES|N64|GameCube|DS|3DS|Wii U|Wii|Switch 2|Switch|PS1|PS2|PS5|PSP|Vita|GB|GBC|Original|Pocket|Micro|console|HD|DX)\b/gi;
 
-async function getIGDBToken(){
-  const tok=localStorage.getItem("igdb_tok");
-  const exp=parseInt(localStorage.getItem("igdb_tok_exp")||"0");
-  if(tok&&Date.now()<exp)return tok;
-  try{
-    const r=await fetch("https://id.twitch.tv/oauth2/token",{
-      method:"POST",
-      headers:{"Content-Type":"application/x-www-form-urlencoded"},
-      body:`client_id=${IGDB_CLIENT_ID}&client_secret=${IGDB_CLIENT_SECRET}&grant_type=client_credentials`
-    });
-    const d=await r.json();
-    if(!d.access_token)return null;
-    localStorage.setItem("igdb_tok",d.access_token);
-    localStorage.setItem("igdb_tok_exp",(Date.now()+(d.expires_in-3600)*1000).toString());
-    return d.access_token;
-  }catch(e){return null;}
-}
-
-async function igdbImg(name){
+async function gameImg(name){
   if(_cache[name]!==undefined)return _cache[name];
-  const token=await getIGDBToken();
-  if(!token){_cache[name]=null;return null;}
   const q=name.replace(STRIP,"").replace(/\s+/g," ").trim();
+  if(!q){_cache[name]=null;return null;}
   try{
-    const r=await fetch("https://api.igdb.com/v4/games",{
-      method:"POST",
-      headers:{"Client-ID":IGDB_CLIENT_ID,"Authorization":`Bearer ${token}`,"Content-Type":"text/plain"},
-      body:`fields cover.image_id; search "${q}"; limit 1;`
-    });
+    const r=await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q+" video game")}&gsrlimit=1&prop=pageimages&pithumbsize=400&format=json&origin=*`
+    );
     const d=await r.json();
-    const imgId=d[0]?.cover?.image_id;
-    const img=imgId?`https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg`:null;
+    const pages=Object.values(d?.query?.pages||{});
+    const img=pages[0]?.thumbnail?.source||null;
     _cache[name]=img;
-    localStorage.setItem("rg_img_v2",JSON.stringify(_cache));
+    localStorage.setItem("rg_img_v3",JSON.stringify(_cache));
     return img;
   }catch(e){_cache[name]=null;return null;}
 }
@@ -113,16 +89,13 @@ const observer=new IntersectionObserver((entries)=>{
     if(e.isIntersecting){
       observer.unobserve(e.target);
       const el=e.target;
-      igdbImg(el.dataset.name).then(url=>{
+      gameImg(el.dataset.name).then(url=>{
         if(url){el.src=url;el.onload=()=>el.classList.add("loaded");}
         else{el.src=makeSvgPlaceholder(el.dataset.name,el.dataset.cons);el.classList.add("loaded");}
       });
     }
   });
 },{rootMargin:"150px"});
-
-function wp(p){return "";}
-function wc(p){return "";}
 
 const G=[
 {n:"Pokémon Rouge",c:"Game Boy",cart:34.90,full:180},
