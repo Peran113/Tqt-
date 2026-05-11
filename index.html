@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 Guide Prix Retrogaming</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:#0d0d14;color:#e2e2f0;min-height:100vh}
+header{padding:18px;background:linear-gradient(135deg,#0d0d14,#16163a);text-align:center;border-bottom:1px solid #252535}
+h1{font-size:22px;font-weight:800;background:linear-gradient(90deg,#6c63ff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{font-size:12px;color:#6b6b85;margin-top:3px}
+.bar{padding:12px;background:#10101a;border-bottom:1px solid #1e1e30;position:sticky;top:0;z-index:100}
+.search{width:100%;padding:9px 14px;border-radius:10px;border:1px solid #252535;background:#1a1a28;color:#e2e2f0;font-size:13px;font-family:inherit;margin-bottom:8px}
+.search:focus{outline:none;border-color:#6c63ff}
+.filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.fb{padding:4px 12px;border-radius:20px;border:1px solid #252535;background:#1a1a28;color:#6b6b85;font-size:10px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.fb:hover,.fb.active{background:#6c63ff;color:#fff;border-color:#6c63ff}
+.cnt{font-size:10px;color:#6b6b85;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:12px}
+.card{background:#16161f;border:1px solid #252535;border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-2px);border-color:#6c63ff}
+.iw{width:100%;height:118px;background:#0d0d18;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.iw img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;opacity:0;transition:opacity .2s}
+.iw img.loaded{opacity:1}
+.iw .em{font-size:30px;position:absolute;transition:opacity .2s}
+.iw img.loaded ~ .em{opacity:0}
+.cons{position:absolute;top:4px;left:4px;background:rgba(108,99,255,.9);color:#fff;font-size:8px;padding:2px 6px;border-radius:8px;z-index:2;font-weight:600}
+.bd{padding:8px 10px}
+.tt{font-size:10.5px;font-weight:600;line-height:1.3;min-height:28px;margin-bottom:5px;color:#e2e2f0}
+.pr{display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:2px}
+.pl{color:#6b6b85}
+.pv{font-weight:600;color:#c8c8f0}
+.buy{margin-top:5px;padding-top:5px;border-top:1px solid #252535;font-size:9.5px;color:#22c55e;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎮 Guide Prix Retrogaming</h1>
+  <p>Référence achat-revente • fourchette rentable x1.5 → x2</p>
+</header>
+<div class="bar">
+  <input class="search" type="text" placeholder="Rechercher un jeu ou console..." id="s" oninput="render()">
+  <div class="filters" id="fil"></div>
+  <div class="cnt" id="cnt"></div>
+</div>
+<div class="grid" id="grid"></div>
+
+<script>
+// wsrv.nl proxy — url param doit contenir https:// sinon refusé
+function wp(path){return "https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/"+path+"&w=300&h=220&fit=cover&output=jpg&errorredirect=https://wsrv.nl/lichtenstein.jpg";}
+function wc(path){return "https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/commons/"+path+"&w=300&h=220&fit=cover&output=jpg&errorredirect=https://wsrv.nl/lichtenstein.jpg";}
+
+const G=[
+// ── GAME BOY ──────────────────────────────────────────────────────────
+{n:"Pokémon Rouge",c:"Game Boy",cart:34.90,full:180,img:wp("en/a/a4/Pokemon_Red_Version_box_art.jpg")},
+{n:"Pokémon Bleu",c:"Game Boy",cart:34.90,full:180,img:wp("en/3/3b/Pokemon_Blue_English_boxart.png")},
+{n:"Pokémon Jaune",c:"Game Boy",cart:34.90,full:180,img:wp("en/b/b9/Pokemon_Yellow_box_art.jpg")},
+{n:"Pokémon Or",c:"Game Boy",cart:39.90,full:189.99,img:wp("en/0/09/Pokemon_Gold_box_art.jpg")},
+{n:"Pokémon Argent",c:"Game Boy",cart:39.90,full:189.99,img:wp("en/a/aa/Pokemon_Silver_box_art.jpg")},
+{n:"Pokémon Cristal",c:"Game Boy",cart:99.90,full:600,img:wp("en/f/f8/Pokemon_Crystal_box_art.jpg")},
+{n:"Tetris Game Boy",c:"Game Boy",cart:9.99,full:50,img:wp("en/4/4a/Tetris_Boxshot.jpg")},
+{n:"Super Mario Land",c:"Game Boy",cart:14.90,full:55,img:wp("en/0/04/SML_-_Super_Mario_Land.jpg")},
+{n:"Super Mario Land 2",c:"Game Boy",cart:20,full:null,img:wp("en/c/cc/Super_Mario_Land_2.jpg")},
+{n:"Dr Mario",c:"Game Boy",cart:14.99,full:null,img:wp("en/9/98/Dr._Mario_box_art.jpg")},
+{n:"Pokémon Pinball",c:"Game Boy",cart:20.50,full:null,img:wp("en/6/62/Pokemon_Pinball.jpg")},
+{n:"Wario Land",c:"Game Boy",cart:19.99,full:null,img:wp("en/b/b8/Wario_Land_box.jpg")},
+{n:"Donkey Kong Game Boy",c:"Game Boy",cart:19.90,full:80,img:wp("en/2/2f/Donkey_Kong_GB_Cover.jpg")},
+{n:"Donkey Kong Land",c:"Game Boy",cart:12,full:null,img:wp("en/c/c0/Donkey_Kong_Land_Coverart.png")},
+{n:"Donkey Kong Land 2",c:"Game Boy",cart:12,full:null,img:wp("en/3/3e/Donkey_Kong_Land_2_Coverart.png")},
+{n:"Donkey Kong Land 3",c:"Game Boy",cart:15,full:null,img:wp("en/0/06/Donkey_Kong_Land_III_Coverart.png")},
+{n:"Kirby's Dream Land",c:"Game Boy",cart:19.99,full:null,img:wp("en/3/3a/KirbysDreamLandboxart.jpg")},
+{n:"Kirby's Dream Land 2",c:"Game Boy",cart:39.99,full:null,img:wp("en/d/dd/Kirby%27s_Dream_Land_2_Coverart.png")},
+{n:"Kirby's Pinball Land",c:"Game Boy",cart:14.90,full:null,img:wp("en/4/4f/Kirby%27s_Pinball_Land_Coverart.png")},
+{n:"Mario Golf GB",c:"Game Boy",cart:19.99,full:79.99,img:wp("en/7/77/Mario_Golf_Coverart.png")},
+{n:"Mario Tennis GB",c:"Game Boy",cart:24.99,full:44.99,img:wp("en/3/30/Mario_Tennis_GBC_Coverart.png")},
+{n:"Metroid II",c:"Game Boy",cart:19.99,full:399.99,img:wp("en/c/c4/Metroid_2_box.jpg")},
+{n:"Mega Man Dr Wily's Revenge",c:"Game Boy",cart:24.99,full:null,img:wp("en/6/65/Mega_Man_-_Dr._Wily%27s_Revenge_Coverart.png")},
+{n:"Pokemon Trading Card Game",c:"Game Boy",cart:22.50,full:null,img:wp("en/b/b9/Pokemon_Trading_Card_Game_Coverart.png")},
+{n:"Super Mario Bros Deluxe",c:"Game Boy",cart:29.90,full:null,img:wp("en/5/5b/SMBDX_Box_Art.jpg")},
+{n:"Zelda Links Awakening",c:"Game Boy",cart:45,full:null,img:wp("en/4/41/The_Legend_of_Zelda_Link%27s_Awakening_box_art.jpg")},
+{n:"Zelda Links Awakening DX",c:"Game Boy",cart:59.90,full:null,img:wp("en/d/dd/The_Legend_of_Zelda_Link%27s_Awakening_DX.jpg")},
+{n:"Zelda Oracle of Ages",c:"Game Boy",cart:59.90,full:null,img:wp("en/6/6e/Oracle_of_Ages_box_art.jpg")},
+{n:"Zelda Oracle of Seasons",c:"Game Boy",cart:59.90,full:null,img:wp("en/8/85/Oracle_of_Seasons_box_art.jpg")},
+{n:"Wario Land 2",c:"Game Boy",cart:20,full:null,img:wp("en/8/8e/Wario_Land_II_Coverart.png")},
+{n:"Wario Land 3",c:"Game Boy",cart:15,full:null,img:wp("en/4/49/Wario_Land_3_Coverart.png")},
+{n:"Resident Evil Gaiden",c:"Game Boy",cart:150,full:null,img:wp("en/6/6e/Resident_Evil_Gaiden_Coverart.png")},
+{n:"Mortal Kombat GB",c:"Game Boy",cart:12.50,full:null,img:wp("en/0/0d/Mortal_Kombat_GB_Coverart.png")},
+{n:"Street Fighter 2 GB",c:"Game Boy",cart:25,full:null,img:wp("en/c/cb/Street_Fighter_II_GB_Coverart.png")},
+{n:"Game Boy Original",c:"Game Boy",cart:80,full:200,img:wc("2/20/Nintendo-Game-Boy-FL.jpg")},
+{n:"Game Boy Pocket",c:"Game Boy",cart:50,full:130,img:wc("2/24/Game-Boy-Pocket-FL.jpg")},
+{n:"Game Boy Color",c:"Game Boy",cart:70,full:170,img:wc("c/c2/Game-Boy-Color-FL.jpg")},
+{n:"Game Boy Micro",c:"Game Boy",cart:149.99,full:249.90,img:wc("8/8b/Game-Boy-Micro-Bk.jpg")},
+// ── GBA ───────────────────────────────────────────────────────────────
+{n:"Advance Wars",c:"GBA",cart:34.90,full:null,img:wp("en/a/a3/Advance_Wars_Coverart.png")},
+{n:"Advance Wars 2",c:"GBA",cart:34.90,full:null,img:wp("en/9/91/Advance_Wars_2_Black_Hole_Rising_Coverart.png")},
+{n:"Final Fantasy IV GBA",c:"GBA",cart:29.90,full:null,img:wp("en/8/85/Final_Fantasy_IV_Advance.jpg")},
+{n:"Final Fantasy Tactics Advance",c:"GBA",cart:24.99,full:null,img:wp("en/3/30/FFTA_box.jpg")},
+{n:"Fire Emblem GBA",c:"GBA",cart:59.90,full:null,img:wp("en/e/eb/Fire_Emblem_The_Blazing_Blade.jpg")},
+{n:"Fire Emblem Sacred Stones",c:"GBA",cart:59.90,full:null,img:wp("en/2/24/Fire_Emblem_The_Sacred_Stones_Box_Art.jpg")},
+{n:"Golden Sun",c:"GBA",cart:34.90,full:80,img:wp("en/0/01/Golden_Sun_box.jpg")},
+{n:"Golden Sun The Lost Age",c:"GBA",cart:34.90,full:110,img:wp("en/4/4d/Golden_Sun_The_Lost_Age_box.jpg")},
+{n:"Kirby Nightmare in Dream Land",c:"GBA",cart:39.99,full:null,img:wp("en/6/64/Kirby_Nightmare_in_Dream_Land_Coverart.png")},
+{n:"Kirby Amazing Mirror",c:"GBA",cart:39.99,full:null,img:wp("en/3/30/Kirby_%26_The_Amazing_Mirror_Coverart.png")},
+{n:"Kingdom Hearts Chain of Memories",c:"GBA",cart:24.90,full:null,img:wp("en/d/db/Kingdom_Hearts_Chain_of_Memories.jpg")},
+{n:"Mario Luigi Superstar Saga",c:"GBA",cart:28.50,full:109.99,img:wp("en/d/d3/Mario_%26_Luigi_-_Superstar_Saga_Coverart.png")},
+{n:"Mario Kart Super Circuit",c:"GBA",cart:14.90,full:40,img:wp("en/3/3b/Mario_Kart_Super_Circuit_Coverart.png")},
+{n:"Mega Man Zero",c:"GBA",cart:29.99,full:null,img:wp("en/0/0c/Mega_Man_Zero_Coverart.png")},
+{n:"Mega Man Zero 2",c:"GBA",cart:34.99,full:null,img:wp("en/d/d9/Mega_Man_Zero_2_Coverart.png")},
+{n:"Mega Man Zero 3",c:"GBA",cart:34.99,full:null,img:wp("en/a/a3/Mega_Man_Zero_3_Coverart.png")},
+{n:"Metroid Fusion",c:"GBA",cart:59.90,full:null,img:wp("en/8/82/Metroid_Fusion_Coverart.png")},
+{n:"Metroid Zero Mission",c:"GBA",cart:69.90,full:null,img:wp("en/4/47/Metroid_Zero_Mission_Coverart.png")},
+{n:"Pokémon Émeraude",c:"GBA",cart:130,full:450,img:wp("en/6/6c/Pokemon_Emerald_box_art.jpg")},
+{n:"Pokémon Rubis",c:"GBA",cart:54.90,full:149.90,img:wp("en/8/89/Pokemon_Ruby_box_art.jpg")},
+{n:"Pokémon Saphir",c:"GBA",cart:54.90,full:149.90,img:wp("en/4/4e/Pokemon_Sapphire_box_art.jpg")},
+{n:"Pokémon Rouge Feu",c:"GBA",cart:89.90,full:350,img:wp("en/8/8e/Pokemon_FireRed_box_art.jpg")},
+{n:"Pokémon Vert Feuille",c:"GBA",cart:89.90,full:350,img:wp("en/a/a7/Pokemon_LeafGreen_box_art.jpg")},
+{n:"Sonic Advance",c:"GBA",cart:14.99,full:null,img:wp("en/3/3a/Sonic_Advance_Coverart.png")},
+{n:"Sonic Advance 2",c:"GBA",cart:17.50,full:null,img:wp("en/e/e1/Sonic_Advance_2_Coverart.png")},
+{n:"Super Mario Advance",c:"GBA",cart:14.99,full:null,img:wp("en/6/6b/Super_Mario_Advance_Coverart.png")},
+{n:"Super Mario World GBA",c:"GBA",cart:19.99,full:null,img:wp("en/3/32/Super_Mario_World_Coverart.png")},
+{n:"Yoshi's Island GBA",c:"GBA",cart:19.99,full:null,img:wp("en/d/df/Super_Mario_World_2_-_Yoshi%27s_Island_Coverart.png")},
+{n:"Super Mario Bros 3 GBA",c:"GBA",cart:24.99,full:80,img:wp("en/a/a5/Super_Mario_Bros._3_coverart.png")},
+{n:"Zelda Minish Cap",c:"GBA",cart:34.90,full:null,img:wp("en/6/6d/The_Legend_of_Zelda_The_Minish_Cap_box_art.jpg")},
+{n:"Wario Land 4",c:"GBA",cart:24.90,full:null,img:wp("en/8/82/Wario_Land_4_Coverart.png")},
+{n:"WarioWare",c:"GBA",cart:39.90,full:null,img:wp("en/7/7c/WarioWare%2C_Inc._Mega_Microgames%21_Coverart.png")},
+{n:"Castlevania Aria of Sorrow",c:"GBA",cart:80,full:null,img:wp("en/9/9f/Castlevania_Aria_of_Sorrow_Coverart.png")},
+{n:"Castlevania Harmony of Dissonance",c:"GBA",cart:70,full:200,img:wp("en/3/3a/Castlevania_Harmony_of_Dissonance_Coverart.png")},
+{n:"Game Boy Advance",c:"GBA",cart:70,full:null,img:wc("0/04/Nintendo-Game-Boy-Advance-Purple-FL.jpg")},
+{n:"Game Boy Advance SP",c:"GBA",cart:74.99,full:130,img:wc("d/d8/Nintendo-Game-Boy-Advance-SP-Mk1-Cobalt-FL.jpg")},
+// ── SNES ──────────────────────────────────────────────────────────────
+{n:"Super Mario World",c:"SNES",cart:24.99,full:149.99,img:wp("en/3/32/Super_Mario_World_Coverart.png")},
+{n:"Zelda A Link to the Past",c:"SNES",cart:54.90,full:250,img:wp("en/2/21/The_Legend_of_Zelda_A_Link_to_the_Past_SNES_Game_Box.jpg")},
+{n:"Super Metroid",c:"SNES",cart:64.90,full:249.99,img:wp("en/6/63/Smetroidbox.jpg")},
+{n:"Donkey Kong Country",c:"SNES",cart:24.90,full:70,img:wp("en/2/2a/Donkey_Kong_Country_SNES_pak.jpg")},
+{n:"Donkey Kong Country 2",c:"SNES",cart:34.99,full:115.90,img:wp("en/5/5a/DonkeyKongCountry2.jpg")},
+{n:"Donkey Kong Country 3",c:"SNES",cart:30,full:null,img:wp("en/3/3a/Donkey_Kong_Country_3_-_Dixie_Kong%27s_Double_Trouble%21_Coverart.png")},
+{n:"Street Fighter II SNES",c:"SNES",cart:17.99,full:69.90,img:wp("en/3/30/Street_Fighter_II_SNES_box.jpg")},
+{n:"Chrono Trigger",c:"SNES",cart:60,full:399.99,img:wp("en/a/a0/Chrono_Trigger.jpg")},
+{n:"Mega Man X3",c:"SNES",cart:null,full:300,img:wp("en/7/7c/Mega_Man_X3_Coverart.png")},
+{n:"Super Mario RPG",c:"SNES",cart:59.99,full:280,img:wp("en/3/35/Super_Mario_RPG.jpg")},
+{n:"Yoshi's Island SNES",c:"SNES",cart:40,full:null,img:wp("en/9/9d/SuperMarioWorld2YoshisIslandbox.jpg")},
+{n:"Earthworm Jim 2",c:"SNES",cart:30,full:null,img:wp("en/3/3a/Earthworm_Jim_2_Coverart.png")},
+{n:"Mortal Kombat SNES",c:"SNES",cart:15,full:null,img:wp("en/5/5d/Mortal_Kombat_Coverart.png")},
+{n:"SNES console",c:"SNES",cart:40,full:79.90,img:wc("3/32/Nintendo-Super-Famicom-Set-FL.jpg")},
+// ── NES ───────────────────────────────────────────────────────────────
+{n:"Super Mario Bros",c:"NES",cart:15,full:129.99,img:wp("en/0/03/Super_Mario_Bros._box.png")},
+{n:"Super Mario Bros 2",c:"NES",cart:19.99,full:null,img:wp("en/b/bf/Super_Mario_Bros._2_NA_box_art.jpg")},
+{n:"Super Mario Bros 3",c:"NES",cart:20,full:null,img:wp("en/5/5d/Super_Mario_Bros._3_coverart.png")},
+{n:"Legend of Zelda NES",c:"NES",cart:70,full:169.99,img:wp("en/4/41/Legend_of_zelda_cover_%28with_cartridge%29_gold.png")},
+{n:"Zelda II Adventure of Link",c:"NES",cart:59.99,full:139.99,img:wp("en/c/c6/Zelda_II_The_Adventure_of_Link_NES.jpg")},
+{n:"Metroid NES",c:"NES",cart:89.99,full:149.99,img:wp("en/8/8a/MetroidboxartNES.jpg")},
+{n:"Mega Man 2",c:"NES",cart:39.99,full:110,img:wp("en/a/a5/Megaman2_box.jpg")},
+{n:"Castlevania NES",c:"NES",cart:39.99,full:null,img:wp("en/d/d4/Castlevania_NES_box_art.jpg")},
+{n:"Castlevania II Simon's Quest",c:"NES",cart:44.99,full:129.99,img:wp("en/a/a0/Castlevania_II_Simon%27s_Quest_NA.jpg")},
+{n:"Punch-Out NES",c:"NES",cart:39.99,full:450,img:wp("en/3/3c/Mike_Tyson%27s_Punch-Out%21%21_NES_Coverart.png")},
+{n:"Contra NES",c:"NES",cart:29.99,full:null,img:wp("en/d/d3/Contra_NES_Box_Art.jpg")},
+{n:"DuckTales NES",c:"NES",cart:12.50,full:null,img:wp("en/4/4c/DuckTales_Coverart.png")},
+{n:"Double Dragon 2",c:"NES",cart:20,full:null,img:wp("en/2/29/Double_Dragon_II_The_Revenge_NES_box_art.jpg")},
+{n:"NES console",c:"NES",cart:null,full:null,img:wc("b/b2/NES-Console-Set.jpg")},
+// ── N64 ───────────────────────────────────────────────────────────────
+{n:"Zelda Ocarina of Time",c:"N64",cart:33.99,full:79.99,img:wp("en/c/c0/The_Legend_of_Zelda_Ocarina_of_Time_box_art.jpg")},
+{n:"Zelda Majora's Mask",c:"N64",cart:79.99,full:180,img:wp("en/c/c2/The_Legend_of_Zelda_Majora%27s_Mask_box_art.png")},
+{n:"Super Mario 64",c:"N64",cart:17.99,full:85.99,img:wp("en/6/6a/Super_Mario_64_box_cover.jpg")},
+{n:"GoldenEye 007",c:"N64",cart:19.99,full:59.99,img:wp("en/7/76/GoldenEye_007_N64_box.jpg")},
+{n:"Super Smash Bros N64",c:"N64",cart:35,full:130,img:wp("en/4/4f/Smash_Bros_64_box.jpg")},
+{n:"Conker's Bad Fur Day",c:"N64",cart:45,full:399.99,img:wp("en/3/3f/Conker%27s_Bad_Fur_Day.jpg")},
+{n:"Banjo-Kazooie",c:"N64",cart:29.99,full:59.99,img:wp("en/d/d1/Banjokazooiebox.jpg")},
+{n:"Paper Mario N64",c:"N64",cart:99.99,full:250,img:wp("en/0/0e/Paper_Mario.jpg")},
+{n:"Mario Party N64",c:"N64",cart:29.99,full:109.90,img:wp("en/1/1a/Mario_Party.jpg")},
+{n:"Mario Party 2",c:"N64",cart:59.99,full:149.99,img:wp("en/3/3a/Mario_Party_2_North_American_box_art.jpg")},
+{n:"Mario Party 3",c:"N64",cart:69.99,full:null,img:wp("en/9/9d/Marioparty3_boxart.jpg")},
+{n:"Perfect Dark",c:"N64",cart:19.99,full:null,img:wp("en/d/d6/Perfect_Dark_Coverart.png")},
+{n:"Donkey Kong 64",c:"N64",cart:30,full:140,img:wp("en/2/29/Donkey_Kong_64_box_art.jpg")},
+{n:"Pokemon Stadium",c:"N64",cart:19.99,full:119.99,img:wp("en/1/1b/Pokemon_Stadium_NA.jpg")},
+{n:"Pokemon Stadium 2",c:"N64",cart:64.99,full:null,img:wp("en/0/04/Pokemonstadium2.jpg")},
+{n:"Diddy Kong Racing",c:"N64",cart:14.99,full:79.99,img:wp("en/3/3c/Diddy_Kong_Racing_Coverart.png")},
+{n:"Kirby 64 Crystal Shards",c:"N64",cart:69.99,full:229.99,img:wp("en/5/56/Kirby64_Box.jpg")},
+{n:"Resident Evil 2 N64",c:"N64",cart:169.99,full:350,img:wp("en/7/77/Resident_Evil_2_video_game_cover.jpg")},
+{n:"Bomberman 64",c:"N64",cart:19.99,full:79.99,img:wp("en/7/7c/Bomberman_64_Coverart.png")},
+{n:"Mario Kart 64",c:"N64",cart:30,full:90,img:wp("en/3/3a/Mario_Kart_64.jpg")},
+{n:"Banjo-Tooie",c:"N64",cart:60,full:null,img:wp("en/2/2b/Banjo-Tooie_Coverart.png")},
+{n:"Pokemon Snap",c:"N64",cart:15,full:120,img:wp("en/4/4f/Pokemon_Snap_Coverart.png")},
+{n:"Pokemon Puzzle League",c:"N64",cart:25,full:150,img:wp("en/d/d4/Pokemon_Puzzle_League_Coverart.png")},
+{n:"Nintendo 64 console",c:"N64",cart:44.99,full:199.90,img:wc("0/04/N64-Console-Set.jpg")},
+// ── GAMECUBE ──────────────────────────────────────────────────────────
+{n:"Super Smash Bros Melee",c:"GameCube",cart:null,full:34.99,img:wp("en/4/4f/Super_Smash_Bros_Melee_box_art.png")},
+{n:"Zelda Wind Waker",c:"GameCube",cart:null,full:39.99,img:wp("en/6/6e/The_Legend_of_Zelda_The_Wind_Waker_Game_Cover.jpg")},
+{n:"Zelda Twilight Princess GC",c:"GameCube",cart:null,full:110,img:wp("en/4/4d/Zelda_Twilight_Princess_box_art.jpg")},
+{n:"Super Mario Sunshine",c:"GameCube",cart:null,full:29.99,img:wp("en/2/24/Super_Mario_Sunshine_box_art.png")},
+{n:"Metroid Prime",c:"GameCube",cart:null,full:34.99,img:wp("en/0/0a/Metroidprimebox.jpg")},
+{n:"Metroid Prime 2 Echoes",c:"GameCube",cart:null,full:54.99,img:wp("en/6/6c/Metroid_Prime_2_Echoes_Coverart.png")},
+{n:"Resident Evil 4 GC",c:"GameCube",cart:null,full:19.99,img:wp("en/9/9e/Resident_Evil_4_cover.jpg")},
+{n:"Resident Evil GC 2002",c:"GameCube",cart:null,full:19.99,img:wp("en/3/3c/Resident_Evil_-_2002.jpg")},
+{n:"Resident Evil Zero",c:"GameCube",cart:null,full:19.99,img:wp("en/1/14/Resident_Evil_Zero_Coverart.png")},
+{n:"Resident Evil Code Veronica X",c:"GameCube",cart:null,full:64.99,img:wp("en/0/0a/Code_Veronica_X_GameCube.jpg")},
+{n:"Resident Evil 2 GC",c:"GameCube",cart:null,full:99.99,img:wp("en/7/77/Resident_Evil_2_video_game_cover.jpg")},
+{n:"Resident Evil 3 Nemesis GC",c:"GameCube",cart:null,full:99.99,img:wp("en/d/d6/Resident_Evil_3_Nemesis_cover.png")},
+{n:"Luigi's Mansion",c:"GameCube",cart:null,full:54.99,img:wp("en/8/8c/Luigi%27s_Mansion_Coverart.png")},
+{n:"Wario World",c:"GameCube",cart:null,full:70,img:wp("en/1/1a/Wario_World_Coverart.png")},
+{n:"Mario Kart Double Dash",c:"GameCube",cart:null,full:39.99,img:wp("en/3/30/Mario_Kart_-_Double_Dash%21%21_box_art.jpg")},
+{n:"Paper Mario Thousand Year Door",c:"GameCube",cart:null,full:99.99,img:wp("en/c/c5/Paper_Mario_The_Thousand-Year_Door.jpg")},
+{n:"Fire Emblem Path of Radiance",c:"GameCube",cart:null,full:99.99,img:wp("en/c/c1/Fire_Emblem_Path_of_Radiance_box.jpg")},
+{n:"Kirby Air Ride",c:"GameCube",cart:null,full:200,img:wp("en/4/41/Kirby_Air_Ride_Coverart.png")},
+{n:"Pikmin",c:"GameCube",cart:null,full:30,img:wp("en/4/40/Pikmin_box.jpg")},
+{n:"Pikmin 2",c:"GameCube",cart:null,full:50,img:wp("en/0/04/Pikmin_2_Coverart.png")},
+{n:"F-Zero GX",c:"GameCube",cart:null,full:69.99,img:wp("en/c/cb/F-Zero_GX_Coverart.png")},
+{n:"Tales of Symphonia",c:"GameCube",cart:null,full:29.99,img:wp("en/4/4d/Tales_of_Symphonia_Coverart.png")},
+{n:"Pokemon Colosseum",c:"GameCube",cart:null,full:90,img:wp("en/c/cf/Pokemon_Colosseum_Coverart.png")},
+{n:"Pokemon XD Gale of Darkness",c:"GameCube",cart:null,full:199.99,img:wp("en/9/91/Pokemon_XD_-_Gale_of_Darkness_Coverart.png")},
+{n:"Star Fox Adventures",c:"GameCube",cart:null,full:29.99,img:wp("en/3/3d/Star_Fox_Adventures_box_art.png")},
+{n:"Mario Party 4",c:"GameCube",cart:null,full:24.99,img:wp("en/c/cf/Mario_Party_4.jpg")},
+{n:"Mario Party 5",c:"GameCube",cart:null,full:29.99,img:wp("en/8/85/MP5_NA_Box.jpg")},
+{n:"Mario Party 6",c:"GameCube",cart:null,full:44.99,img:wp("en/9/93/Mario_Party_6.jpg")},
+{n:"Mario Party 7",c:"GameCube",cart:null,full:59.99,img:wp("en/2/26/Mario_Party_7.jpg")},
+{n:"Metal Gear Solid Twin Snakes",c:"GameCube",cart:null,full:85,img:wp("en/0/0c/Metal_Gear_Solid_-_The_Twin_Snakes_Coverart.png")},
+{n:"Ikaruga",c:"GameCube",cart:null,full:79.99,img:wp("en/9/97/Ikaruga_Coverart.png")},
+{n:"The Simpsons Hit and Run",c:"GameCube",cart:null,full:65,img:wp("en/b/b1/The_Simpsons_Hit_%26_Run.jpg")},
+{n:"Sonic Adventure 2 Battle",c:"GameCube",cart:null,full:18,img:wp("en/6/63/Sonic_Adventure_2_Battle_Coverart.png")},
+{n:"Sonic Adventure DX",c:"GameCube",cart:null,full:25,img:wp("en/c/c8/Sonic_Adventure_DX_Director%27s_Cut_Coverart.png")},
+{n:"Sonic Heroes",c:"GameCube",cart:null,full:15,img:wp("en/2/2c/Sonic_Heroes_cover.png")},
+{n:"GameCube console",c:"GameCube",cart:null,full:60,img:wc("8/8a/Nintendo-GameCube-Console-Set.jpg")},
+// ── DS ────────────────────────────────────────────────────────────────
+{n:"Zelda Phantom Hourglass",c:"DS",cart:19.99,full:34.99,img:wp("en/5/5e/Phantom_Hourglass_box.jpg")},
+{n:"Pokemon HeartGold",c:"DS",cart:64.90,full:105,img:wp("en/6/6c/Pokemon_HeartGold_EN_boxart.png")},
+{n:"Pokemon SoulSilver",c:"DS",cart:64.90,full:105,img:wp("en/3/3a/Pokemon_SoulSilver_EN_boxart.png")},
+{n:"Pokemon Black",c:"DS",cart:34.99,full:59.99,img:wp("en/0/01/Pokemon_Black.png")},
+{n:"Pokemon White",c:"DS",cart:34.90,full:55.50,img:wp("en/3/3a/Pokemon_White.png")},
+{n:"Pokemon Pearl",c:"DS",cart:19.99,full:44.99,img:wp("en/8/8c/Pokemon_Pearl.png")},
+{n:"Pokemon Diamond",c:"DS",cart:19.99,full:44.99,img:wp("en/c/c4/Pokemon_Diamond.png")},
+{n:"Pokemon Platinum",c:"DS",cart:34.90,full:70,img:wp("en/6/6f/Pokemon_Platinum.png")},
+{n:"Pokemon Black 2",c:"DS",cart:64.90,full:100,img:wp("en/2/2c/Pokemon_Black_2_EN_boxart.png")},
+{n:"Pokemon White 2",c:"DS",cart:64.90,full:100,img:wp("en/8/8b/Pokemon_White_2_EN_boxart.png")},
+{n:"New Super Mario Bros DS",c:"DS",cart:9.90,full:14.99,img:wp("en/b/b6/NewSuperMarioBros.jpg")},
+{n:"Mario Kart DS",c:"DS",cart:9.99,full:14.99,img:wp("en/8/87/Mario_Kart_DS.jpg")},
+{n:"Super Mario 64 DS",c:"DS",cart:12.50,full:19.99,img:wp("en/3/30/Super_Mario_64_DS.jpg")},
+{n:"Zelda Spirit Tracks",c:"DS",cart:24.99,full:39.99,img:wp("en/c/cc/The_Legend_of_Zelda_Spirit_Tracks_box.jpg")},
+{n:"Castlevania Portrait of Ruin",c:"DS",cart:39.99,full:76.50,img:wp("en/8/86/Castlevania_Portrait_of_Ruin_Coverart.png")},
+{n:"Dragon Quest IX",c:"DS",cart:14.99,full:29.99,img:wp("en/9/96/Dragon_Quest_IX_NA.jpg")},
+{n:"Chrono Trigger DS",c:"DS",cart:79.90,full:179.99,img:wp("en/3/30/Chrono_Trigger_DS.jpg")},
+{n:"Prof Layton Curious Village",c:"DS",cart:9.99,full:14.99,img:wp("en/9/9c/Professor_Layton_and_the_Curious_Village.jpg")},
+{n:"Prof Layton Pandora's Box",c:"DS",cart:9.99,full:14.99,img:wp("en/c/c1/Professor_Layton_and_the_Diabolical_Box.jpg")},
+{n:"Prof Layton Unwound Future",c:"DS",cart:9.99,full:14.99,img:wp("en/2/24/Professor_Layton_and_the_Unwound_Future.jpg")},
+{n:"Mario Luigi Partners in Time",c:"DS",cart:29.90,full:59.90,img:wp("en/4/4f/Mario%26LuigiPiT.jpg")},
+{n:"Mario Luigi Inside Story",c:"DS",cart:9.99,full:19.90,img:wp("en/d/d5/Mario_%26_Luigi_-_Bowser%27s_Inside_Story_Coverart.png")},
+{n:"Advance Wars Dual Strike",c:"DS",cart:14.99,full:29.99,img:wp("en/9/97/Advance_Wars_Dual_Strike.jpg")},
+{n:"Animal Crossing Wild World",c:"DS",cart:17.50,full:22.50,img:wp("en/4/47/Animal_Crossing_Wild_World_Coverart.png")},
+{n:"Kirby Super Star Ultra",c:"DS",cart:null,full:79.99,img:wp("en/9/9b/Kirby_Super_Star_Ultra.jpg")},
+{n:"Mega Man ZX",c:"DS",cart:24.99,full:44.99,img:wp("en/d/d4/Mega_Man_ZX_Coverart.png")},
+{n:"Yoshi's Island DS",c:"DS",cart:14.99,full:24.99,img:wp("en/b/b3/Yoshi%27s_Island_DS.jpg")},
+{n:"Phoenix Wright Ace Attorney",c:"DS",cart:19.99,full:39.99,img:wp("en/9/95/Phoenix_Wright_-_Ace_Attorney_Coverart.png")},
+{n:"Dragon Quest VI DS",c:"DS",cart:44.99,full:89.99,img:wp("en/9/91/Dragon_Quest_VI_NA_box_art.jpg")},
+{n:"Dragon Quest IV DS",c:"DS",cart:24.99,full:49.99,img:wp("en/c/c2/Dragon_Quest_IV_-_Chapters_of_the_Chosen_Coverart.png")},
+{n:"Dragon Quest V DS",c:"DS",cart:80,full:160,img:wp("en/8/86/Dragon_Quest_V_DS_North_American_box_artwork.jpg")},
+{n:"Pokemon Conquest",c:"DS",cart:80,full:180,img:wp("en/9/9b/Pokemon_Conquest_EN_boxart.png")},
+{n:"Pokemon Mystery Dungeon Sky",c:"DS",cart:60,full:80,img:wp("en/7/7c/Pokemon_Mystery_Dungeon_-_Explorers_of_Sky_Coverart.png")},
+{n:"DS Lite",c:"DS",cart:39.99,full:59.99,img:wc("3/30/Nintendo-DS-Lite-Black-Open.jpg")},
+{n:"DSi",c:"DS",cart:34.99,full:null,img:wc("0/03/Nintendo-DSi-Black-Open.jpg")},
+{n:"DSi XL",c:"DS",cart:54.99,full:null,img:wc("c/c4/Nintendo-DSi-XL-Burgundy-Open.jpg")},
+// ── 3DS ───────────────────────────────────────────────────────────────
+{n:"Zelda Ocarina of Time 3D",c:"3DS",cart:16.50,full:25,img:wp("en/6/6c/The_Legend_of_Zelda_Ocarina_of_Time_3D_box_art.png")},
+{n:"Zelda Majora's Mask 3D",c:"3DS",cart:50,full:65,img:wp("en/9/96/The_Legend_of_Zelda_Majora%27s_Mask_3D_box_art.png")},
+{n:"Zelda A Link Between Worlds",c:"3DS",cart:14.99,full:19.99,img:wp("en/8/82/The_Legend_of_Zelda_A_Link_Between_Worlds_box_art.png")},
+{n:"Pokemon Sun",c:"3DS",cart:10.50,full:17.50,img:wp("en/0/0d/Pok%C3%A9mon_Sun_logo.png")},
+{n:"Pokemon Moon",c:"3DS",cart:10.50,full:17.50,img:wp("en/8/8d/Pok%C3%A9mon_Moon_logo.png")},
+{n:"Pokemon Ultra Sun",c:"3DS",cart:18.50,full:27.99,img:wp("en/b/b8/Pok%C3%A9mon_Ultra_Sun_3DS_cover_art.png")},
+{n:"Pokemon Ultra Moon",c:"3DS",cart:18.50,full:27.99,img:wp("en/9/9c/Pok%C3%A9mon_Ultra_Moon_3DS_cover_art.png")},
+{n:"Pokemon X",c:"3DS",cart:24.99,full:35,img:wp("en/4/47/Pok%C3%A9mon_X_EN_boxart.png")},
+{n:"Pokemon Y",c:"3DS",cart:24.99,full:35,img:wp("en/5/50/Pok%C3%A9mon_Y_EN_boxart.png")},
+{n:"Pokemon Omega Ruby",c:"3DS",cart:27.50,full:40,img:wp("en/9/93/Pok%C3%A9mon_Omega_Ruby_box_art.png")},
+{n:"Pokemon Alpha Sapphire",c:"3DS",cart:27.50,full:40,img:wp("en/8/8b/Pok%C3%A9mon_Alpha_Sapphire_box_art.png")},
+{n:"Super Mario 3D Land",c:"3DS",cart:5.50,full:7.99,img:wp("en/6/63/Super_Mario_3D_Land_box_art.png")},
+{n:"Mario Kart 7",c:"3DS",cart:6,full:10,img:wp("en/9/93/MK7_Box_Art.jpg")},
+{n:"Super Smash Bros 3DS",c:"3DS",cart:7.99,full:13.99,img:wp("en/3/3a/Super_Smash_Bros_for_Nintendo_3DS_box_artwork.png")},
+{n:"Animal Crossing New Leaf",c:"3DS",cart:9.99,full:14.99,img:wp("en/d/dc/Animal_Crossing_New_Leaf_Cover.png")},
+{n:"Luigi's Mansion Dark Moon",c:"3DS",cart:5.99,full:12.50,img:wp("en/2/2f/Luigi%27s_Mansion_Dark_Moon_box_artwork.png")},
+{n:"Fire Emblem Awakening",c:"3DS",cart:null,full:39.99,img:wp("en/2/24/Fire_Emblem_Awakening_box_artwork.png")},
+{n:"Fire Emblem Fates Conquest",c:"3DS",cart:19.99,full:32.50,img:wp("en/9/93/Fire_Emblem_Fates_Conquest_artwork.jpg")},
+{n:"Fire Emblem Fates Birthright",c:"3DS",cart:19.99,full:29.99,img:wp("en/d/d3/Fire_Emblem_Fates_Birthright_artwork.jpg")},
+{n:"Fire Emblem Echoes",c:"3DS",cart:null,full:24.99,img:wp("en/d/d3/Fire_Emblem_Echoes_-_Shadows_of_Valentia.jpg")},
+{n:"Monster Hunter 4 Ultimate",c:"3DS",cart:7.50,full:12.50,img:wp("en/6/6e/Monster_Hunter_4_Ultimate.png")},
+{n:"Mario Luigi Dream Team",c:"3DS",cart:7.50,full:14.50,img:wp("en/3/3a/Mario_%26_Luigi_-_Dream_Team_box_artwork.png")},
+{n:"Mario Luigi Paper Jam",c:"3DS",cart:10,full:15,img:wp("en/3/35/Mario_%26_Luigi_Paper_Jam_box_artwork.png")},
+{n:"Bravely Default",c:"3DS",cart:24.99,full:null,img:wp("en/c/c8/Bravely_Default_EU_box_art.png")},
+{n:"Bravely Second",c:"3DS",cart:19.99,full:null,img:wp("en/0/03/Bravely_Second_End_Layer_NA_box_art.jpg")},
+{n:"Xenoblade Chronicles 3D",c:"3DS",cart:9.99,full:19.99,img:wp("en/d/df/Xenoblade_Chronicles_3D_-_North_American_Cover.png")},
+{n:"Kirby Triple Deluxe",c:"3DS",cart:6.50,full:9.90,img:wp("en/3/35/Kirby_Triple_Deluxe_North_American_box_art.png")},
+{n:"Kirby Planet Robobot",c:"3DS",cart:14.99,full:20,img:wp("en/c/c8/Kirby_Planet_Robobot.png")},
+{n:"Donkey Kong Country Returns 3D",c:"3DS",cart:5.50,full:9.99,img:wp("en/9/97/Donkey_Kong_Country_Returns_3D_NA_box_art.jpg")},
+{n:"Kid Icarus Uprising",c:"3DS",cart:12.50,full:20,img:wp("en/0/0a/Kid_Icarus_Uprising.png")},
+{n:"Metroid Samus Returns",c:"3DS",cart:34.99,full:54.99,img:wp("en/9/9d/Metroid_Samus_Returns_3DS_box_art.png")},
+{n:"Dragon Quest VII 3DS",c:"3DS",cart:19.99,full:29.99,img:wp("en/c/c8/Dragon_Quest_VII_-_Fragments_of_the_Forgotten_Past_3DS_North_American_box_art.png")},
+{n:"Dragon Quest VIII 3DS",c:"3DS",cart:34.99,full:54.99,img:wp("en/2/27/Dragon_Quest_VIII_3DS_North_American_box_art.png")},
+{n:"Tomodachi Life",c:"3DS",cart:19.50,full:24.99,img:wp("en/3/35/Tomodachi_Life.png")},
+{n:"Yo-Kai Watch",c:"3DS",cart:3.50,full:4.99,img:wp("en/c/cb/Yokai_Watch_NA_3DS_cover_art.png")},
+{n:"Yo-Kai Watch 2",c:"3DS",cart:12.50,full:24.99,img:wp("en/2/2b/Yo-Kai_Watch_2_-_Bony_Spirits.png")},
+{n:"Yo-Kai Watch 3",c:"3DS",cart:80,full:149.99,img:wp("en/0/03/Yo-Kai_Watch_3_NA_cover.png")},
+{n:"Prof Layton Miracle Mask",c:"3DS",cart:12.50,full:17.50,img:wp("en/d/dd/Professor_Layton_and_the_Miracle_Mask_box_artwork.png")},
+{n:"Rythme Paradis Megamix",c:"3DS",cart:30,full:60,img:wp("en/a/a7/Rhythm_Heaven_Megamix.jpg")},
+{n:"3DS console",c:"3DS",cart:120,full:150,img:wc("c/cd/Nintendo-3DS-AquaOpen.png")},
+{n:"3DS XL",c:"3DS",cart:160,full:200,img:wc("2/2a/Nintendo-3DS-XL-Blue-Open.png")},
+{n:"2DS",c:"3DS",cart:54.99,full:74.90,img:wc("d/d9/Nintendo-2DS-Black-and-Blue.png")},
+{n:"New 3DS XL",c:"3DS",cart:220,full:239.90,img:wc("3/3a/New-Nintendo-3DS-XL-Black.png")},
+{n:"New 2DS XL",c:"3DS",cart:180,full:220,img:wc("0/03/New-Nintendo-2DS-XL-WB.png")},
+// ── WII ───────────────────────────────────────────────────────────────
+{n:"Zelda Twilight Princess Wii",c:"Wii",cart:null,full:14.99,img:wp("en/4/41/Twilight_Princess_Wii_Game_Box.jpg")},
+{n:"Super Mario Galaxy",c:"Wii",cart:null,full:14.99,img:wp("en/0/0a/SuperMarioGalaxy.jpg")},
+{n:"Super Mario Galaxy 2",c:"Wii",cart:null,full:17.50,img:wp("en/2/2b/Super_Mario_Galaxy_2.jpg")},
+{n:"Zelda Skyward Sword",c:"Wii",cart:null,full:19.99,img:wp("en/c/c1/Skyward_Sword_-_Box_artwork.png")},
+{n:"Xenoblade Chronicles Wii",c:"Wii",cart:null,full:19.90,img:wp("en/d/dd/Xenoblade_box_artwork.png")},
+{n:"Metroid Prime Trilogy",c:"Wii",cart:null,full:59.99,img:wp("en/3/35/Metroid_Prime_Trilogy_box.png")},
+{n:"Super Smash Bros Brawl",c:"Wii",cart:null,full:12.50,img:wp("en/0/04/Super_Smash_Bros_Brawl.png")},
+{n:"Mario Kart Wii",c:"Wii",cart:null,full:14.99,img:wp("en/8/8b/MarioKartWii.jpg")},
+{n:"New Super Mario Bros Wii",c:"Wii",cart:null,full:14.99,img:wp("en/f/ff/NewSuperMarioBros.WiiBoxart.PNG")},
+{n:"Super Paper Mario",c:"Wii",cart:null,full:19.99,img:wp("en/2/27/Super_Paper_Mario_box_art.jpg")},
+{n:"Super Mario All Stars Wii",c:"Wii",cart:null,full:29.99,img:wp("en/0/06/Super_Mario_All-Stars_25th_Anniversary_Edition.jpg")},
+{n:"Mario Party 8",c:"Wii",cart:null,full:12.50,img:wp("en/3/30/Mario_Party_8.jpg")},
+{n:"Mario Party 9",c:"Wii",cart:null,full:15,img:wp("en/8/85/Mario_Party_9_Box_Art.png")},
+{n:"Donkey Kong Country Returns Wii",c:"Wii",cart:null,full:9.90,img:wp("en/3/3e/Donkey_Kong_Country_Returns.png")},
+{n:"Kirby Epic Yarn",c:"Wii",cart:null,full:29.90,img:wp("en/3/3a/Kirby%27s_Epic_Yarn_NA_cover.png")},
+{n:"Kirby Return to Dream Land",c:"Wii",cart:null,full:29.90,img:wp("en/d/da/Kirby%27s_Return_to_Dream_Land_box_artwork.png")},
+{n:"Pokepark Wii",c:"Wii",cart:null,full:19.90,img:wp("en/0/05/PokePark_Wii_-_Pikachu%27s_Adventure.png")},
+{n:"Pokepark 2",c:"Wii",cart:null,full:29.90,img:wp("en/c/c8/Pok%C3%A9Park_2_Wonders_Beyond.png")},
+{n:"Pokemon Battle Revolution",c:"Wii",cart:null,full:19.90,img:wp("en/3/35/Pokemon_Battle_Revolution_Coverart.png")},
+{n:"Wii Party",c:"Wii",cart:null,full:17.50,img:wp("en/0/02/Wii_Party_Cover.png")},
+{n:"Epic Mickey",c:"Wii",cart:null,full:7.99,img:wp("en/d/d8/Epic_Mickey.jpg")},
+{n:"Sonic Colors",c:"Wii",cart:null,full:9.99,img:wp("en/3/35/Sonic_Colors_box_art.png")},
+{n:"Wii console",c:"Wii",cart:null,full:24.99,img:wc("b/bc/Wii-Console.png")},
+{n:"Wii Mini",c:"Wii",cart:null,full:39.99,img:wc("3/3d/Wii_Mini_Console.png")},
+// ── WII U ─────────────────────────────────────────────────────────────
+{n:"Zelda Wind Waker HD",c:"Wii U",cart:null,full:45,img:wp("en/2/22/The_Legend_of_Zelda_Wind_Waker_HD_box_art.jpg")},
+{n:"Super Smash Bros Wii U",c:"Wii U",cart:null,full:9.99,img:wp("en/9/9c/Super_Smash_Bros_for_Wii_U_box_artwork.png")},
+{n:"Mario Kart 8 Wii U",c:"Wii U",cart:null,full:9.99,img:wp("en/8/8e/Mario_Kart_8_Wii_U_box_art.png")},
+{n:"Super Mario 3D World Wii U",c:"Wii U",cart:null,full:9.99,img:wp("en/0/0d/Super_Mario_3D_World_box.png")},
+{n:"Splatoon Wii U",c:"Wii U",cart:null,full:7.50,img:wp("en/3/38/Splatoon_box_artwork.png")},
+{n:"Bayonetta 2 Wii U",c:"Wii U",cart:null,full:15,img:wp("en/c/c8/Bayonetta_2_box_artwork.png")},
+{n:"Pikmin 3 Wii U",c:"Wii U",cart:null,full:14.90,img:wp("en/3/3e/Pikmin3box.jpg")},
+{n:"Xenoblade Chronicles X",c:"Wii U",cart:null,full:34.99,img:wp("en/2/2b/Xenoblade_Chronicles_X_box_artwork.png")},
+{n:"Zelda Twilight Princess HD",c:"Wii U",cart:null,full:89.99,img:wp("en/2/29/The_Legend_of_Zelda_-_Twilight_Princess_HD.jpg")},
+{n:"New Super Mario Bros U",c:"Wii U",cart:null,full:14.99,img:wp("en/4/49/New_Super_Mario_Bros._U.jpg")},
+{n:"Paper Mario Color Splash",c:"Wii U",cart:null,full:19.90,img:wp("en/d/d2/Paper_Mario_Color_Splash_box_artwork.jpg")},
+{n:"Hyrule Warriors Wii U",c:"Wii U",cart:null,full:13.50,img:wp("en/2/29/Hyrule_Warriors_box_art.jpg")},
+{n:"Pokken Tournament Wii U",c:"Wii U",cart:null,full:14.50,img:wp("en/8/89/Pokk%C3%A9n_Tournament_Wii_U_NA_cover.png")},
+{n:"Wii U console",c:"Wii U",cart:null,full:79.99,img:wc("0/0e/Wii_U_Console_and_Gamepad.png")},
+// ── SWITCH ────────────────────────────────────────────────────────────
+{n:"Zelda Breath of the Wild",c:"Switch",cart:29.99,full:34.50,img:wp("en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg")},
+{n:"Super Mario Odyssey",c:"Switch",cart:24.99,full:28.99,img:wp("en/8/8d/Super_Mario_Odyssey.jpg")},
+{n:"Animal Crossing New Horizons",c:"Switch",cart:29.99,full:34.99,img:wp("en/1/1f/Animal_Crossing_New_Horizons.jpg")},
+{n:"Mario Kart 8 Deluxe",c:"Switch",cart:29.90,full:34.90,img:wp("en/2/2d/Mario_Kart_8_Deluxe.jpg")},
+{n:"Super Smash Bros Ultimate",c:"Switch",cart:27.50,full:32.50,img:wp("en/a/aa/Super_Smash_Bros._Ultimate.jpg")},
+{n:"Splatoon 2",c:"Switch",cart:8.99,full:11.99,img:wp("en/e/e5/Splatoon_2.jpg")},
+{n:"Splatoon 3",c:"Switch",cart:18.50,full:24.99,img:wp("en/2/27/Splatoon_3_box_artwork.jpg")},
+{n:"Xenoblade Chronicles Switch",c:"Switch",cart:null,full:39.99,img:wp("en/4/4e/Xenoblade_Chronicles_Definitive_Edition_cover.jpg")},
+{n:"Xenoblade Chronicles 2",c:"Switch",cart:null,full:39.99,img:wp("en/4/4d/Xenoblade_Chronicles_2.jpg")},
+{n:"Xenoblade Chronicles 3",c:"Switch",cart:null,full:28.50,img:wp("en/d/d6/Xenoblade_Chronicles_3_cover_art.jpg")},
+{n:"Fire Emblem Three Houses",c:"Switch",cart:null,full:49.99,img:wp("en/b/b1/Fire_Emblem_Three_Houses_box_art.jpg")},
+{n:"Pokemon Scarlet",c:"Switch",cart:25,full:29.99,img:wp("en/c/c0/Pok%C3%A9mon_Scarlet_EN_boxart.png")},
+{n:"Pokemon Violet",c:"Switch",cart:25,full:29.99,img:wp("en/2/29/Pok%C3%A9mon_Violet_EN_boxart.png")},
+{n:"Pokemon Brilliant Diamond",c:"Switch",cart:19.99,full:24.99,img:wp("en/9/9c/Pokemon_Brilliant_Diamond_cover_art.png")},
+{n:"Pokemon Shining Pearl",c:"Switch",cart:19.99,full:24.99,img:wp("en/0/02/Pokemon_Shining_Pearl_cover_art.png")},
+{n:"Metroid Dread",c:"Switch",cart:24.99,full:29.99,img:wp("en/4/47/Metroid_Dread_cover_art.jpg")},
+{n:"Super Mario 3D World Bowser's Fury",c:"Switch",cart:24.99,full:29.99,img:wp("en/d/d9/Super_Mario_3D_World_%2B_Bowser%27s_Fury.jpg")},
+{n:"Zelda Tears of the Kingdom",c:"Switch",cart:29.50,full:36.99,img:wp("en/a/a0/The_Legend_of_Zelda_Tears_of_the_Kingdom_cover.jpg")},
+{n:"Super Mario RPG Switch",c:"Switch",cart:18.50,full:22.50,img:wp("en/3/30/Super_Mario_RPG_Nintendo_Switch_cover_art.jpg")},
+{n:"Ring Fit Adventure",c:"Switch",cart:20,full:29.90,img:wp("en/0/06/Ring_Fit_Adventure.jpg")},
+{n:"Celeste",c:"Switch",cart:39.99,full:55,img:wp("en/2/2a/Celeste_box_art_full.png")},
+{n:"New Pokemon Snap",c:"Switch",cart:18.50,full:24.90,img:wp("en/8/87/New_Pok%C3%A9mon_Snap_cover_art.jpg")},
+{n:"Super Mario 3D All Stars",c:"Switch",cart:52.50,full:60,img:wp("en/2/27/Super_Mario_3D_All-Stars.jpg")},
+{n:"Luigi's Mansion 3",c:"Switch",cart:24.99,full:28,img:wp("en/6/63/Luigi%27s_Mansion_3.jpg")},
+{n:"Super Mario Party",c:"Switch",cart:22.50,full:27.50,img:wp("en/2/2c/Super_Mario_Party.jpg")},
+{n:"Mario Party Superstars",c:"Switch",cart:24.99,full:29.99,img:wp("en/8/87/Mario_Party_Superstars.jpg")},
+{n:"Mario Party Jamboree",c:"Switch",cart:29.50,full:36.50,img:wp("en/2/2c/Super_Mario_Party.jpg")},
+{n:"Pokemon Let's Go Pikachu",c:"Switch",cart:24.99,full:30,img:wp("en/8/8c/Pok%C3%A9mon_Let%27s_Go_Pikachu.png")},
+{n:"Pokemon Let's Go Eevee",c:"Switch",cart:24.99,full:35,img:wp("en/3/35/Pok%C3%A9mon_Let%27s_Go_Eevee.png")},
+{n:"Hyrule Warriors Age of Calamity",c:"Switch",cart:19.99,full:27.50,img:wp("en/9/9d/Hyrule_Warriors_-_Age_of_Calamity_cover_art.jpg")},
+{n:"Zelda Skyward Sword HD",c:"Switch",cart:22.50,full:28.99,img:wp("en/9/96/The_Legend_of_Zelda_Skyward_Sword_HD_cover_art.jpg")},
+{n:"Donkey Kong Tropical Freeze Switch",c:"Switch",cart:24.99,full:29.99,img:wp("en/8/82/Donkey_Kong_Country_Tropical_Freeze.jpg")},
+{n:"Pokemon Legends Arceus",c:"Switch",cart:22.50,full:29.99,img:wp("en/3/3a/Pok%C3%A9mon_Legends_Arceus_cover.jpg")},
+{n:"Super Mario Bros Wonder",c:"Switch",cart:27.50,full:32.50,img:wp("en/8/89/Super_Mario_Bros._Wonder_Box_Art.jpg")},
+{n:"Pokemon Sword",c:"Switch",cart:19.99,full:24.99,img:wp("en/3/3d/Pok%C3%A9mon_Sword_and_Shield_EN_box_art_-_Sword.png")},
+{n:"Pokemon Shield",c:"Switch",cart:19.99,full:24.99,img:wp("en/9/9a/Pok%C3%A9mon_Sword_and_Shield_EN_box_art_-_Shield.png")},
+{n:"Super Mario Maker 2",c:"Switch",cart:14.50,full:19.90,img:wp("en/9/93/Super_Mario_Maker_2_artwork.jpg")},
+{n:"Pikmin 4",c:"Switch",cart:23.50,full:32.99,img:wp("en/3/35/Pikmin_4_cover_art.jpg")},
+{n:"Luigi's Mansion 2 HD",c:"Switch",cart:28.50,full:34.99,img:wp("en/2/2f/Luigi%27s_Mansion_Dark_Moon_box_artwork.png")},
+{n:"DK Country Returns HD",c:"Switch",cart:32.50,full:39.90,img:wp("en/3/3e/Donkey_Kong_Country_Returns.png")},
+{n:"Nintendo Switch",c:"Switch",cart:null,full:149.99,img:wc("4/49/Nintendo_Switch_Console.png")},
+{n:"Switch Lite",c:"Switch",cart:null,full:99.99,img:wc("c/c2/Nintendo-Switch-Lite-wYellow-Standing.png")},
+{n:"Switch OLED",c:"Switch",cart:null,full:185.99,img:wc("9/91/Nintendo_Switch_OLED_Model.jpg")},
+{n:"Switch Fortnite Edition",c:"Switch",cart:null,full:300,img:wc("4/49/Nintendo_Switch_Console.png")},
+// ── SWITCH 2 ──────────────────────────────────────────────────────────
+{n:"Nintendo Switch 2",c:"Switch 2",cart:null,full:350,img:wc("4/49/Nintendo_Switch_Console.png")},
+{n:"Mario Kart World",c:"Switch 2",cart:null,full:45,img:wp("en/2/2d/Mario_Kart_8_Deluxe.jpg")},
+{n:"Tomodachi Life Switch 2",c:"Switch 2",cart:null,full:55,img:wp("en/3/35/Tomodachi_Life.png")},
+// ── PS1 ───────────────────────────────────────────────────────────────
+{n:"Final Fantasy VII",c:"PS1",cart:null,full:34.99,img:wp("en/c/ce/FF7boxart.jpg")},
+{n:"Final Fantasy VIII",c:"PS1",cart:null,full:29.99,img:wp("en/2/27/Ffviiibox.jpg")},
+{n:"Final Fantasy IX",c:"PS1",cart:null,full:29.99,img:wp("en/9/9a/Final_Fantasy_IX.jpg")},
+{n:"Metal Gear Solid",c:"PS1",cart:null,full:49.99,img:wp("en/6/6a/Metal_Gear_Solid_cover_art.png")},
+{n:"Resident Evil PS1",c:"PS1",cart:null,full:49.99,img:wp("en/3/3e/Resident_Evil_1_cover.png")},
+{n:"Resident Evil 2 PS1",c:"PS1",cart:null,full:44.99,img:wp("en/6/6f/Resident_Evil_2_cover.png")},
+{n:"Silent Hill",c:"PS1",cart:null,full:99.99,img:wp("en/c/c5/Silent_Hill_video_game_cover.png")},
+{n:"Chrono Cross",c:"PS1",cart:null,full:80,img:wp("en/c/c2/Chrono_Cross.jpg")},
+{n:"Vagrant Story",c:"PS1",cart:null,full:34.99,img:wp("en/5/55/Vagrant_Story_box_art.jpg")},
+{n:"Legend of Dragoon",c:"PS1",cart:null,full:80,img:wp("en/2/29/The_Legend_of_Dragoon.jpg")},
+{n:"Tail Concerto",c:"PS1",cart:null,full:199.99,img:wp("en/9/91/Tail_Concerto_NA.jpg")},
+{n:"Grandia",c:"PS1",cart:null,full:39.99,img:wp("en/2/2d/Grandia_Coverart.png")},
+{n:"Dino Crisis",c:"PS1",cart:null,full:49.99,img:wp("en/0/04/Dino_Crisis_Coverart.png")},
+{n:"Alundra",c:"PS1",cart:null,full:79.99,img:wp("en/9/9d/Alundra_Coverart.png")},
+{n:"Yu-Gi-Oh Forbidden Memories",c:"PS1",cart:null,full:24.99,img:wp("en/d/d8/Yu-Gi-Oh%21_Forbidden_Memories_Coverart.png")},
+{n:"Breath of Fire 3",c:"PS1",cart:null,full:25,img:wp("en/9/95/Breath_of_Fire_III_Coverart.png")},
+// ── PS2 ───────────────────────────────────────────────────────────────
+{n:"GTA San Andreas",c:"PS2",cart:null,full:9.99,img:wp("en/4/49/GTA_San_Andreas_cover.jpg")},
+{n:"Tekken 5",c:"PS2",cart:null,full:9.90,img:wp("en/0/0e/Tekken_5_cover.jpg")},
+{n:"Silent Hill 4 The Room",c:"PS2",cart:null,full:70,img:wp("en/9/96/Silent_Hill_4_The_Room_cover.jpg")},
+{n:"Resident Evil 4 PS2",c:"PS2",cart:null,full:15,img:wp("en/9/9e/Resident_Evil_4_cover.jpg")},
+{n:"Resident Evil Outbreak",c:"PS2",cart:null,full:25,img:wp("en/3/30/Resident_Evil_Outbreak_Coverart.png")},
+{n:"Resident Evil Dead Aim",c:"PS2",cart:null,full:60,img:wp("en/0/0a/Resident_Evil_Dead_Aim_Coverart.png")},
+{n:"Canis Canem Edit",c:"PS2",cart:null,full:20,img:wp("en/3/3d/Bully_Coverart.png")},
+{n:"Yakuza",c:"PS2",cart:null,full:20,img:wp("en/3/30/Yakuza_PS2_NA_cover.jpg")},
+{n:"Shadow the Hedgehog",c:"PS2",cart:null,full:24.50,img:wp("en/1/14/Shadow_The_Hedgehog_cover.png")},
+{n:"Scarface The World is Yours",c:"PS2",cart:null,full:20,img:wp("en/0/0a/Scarface_-_The_World_Is_Yours_Coverart.png")},
+{n:"Urban Reign",c:"PS2",cart:null,full:34.90,img:wp("en/d/d3/Urban_Reign_Coverart.png")},
+{n:"Crash Twinsanity",c:"PS2",cart:null,full:8,img:wp("en/b/bb/Crash_Twinsanity_Cover.jpg")},
+{n:"PlayStation 2 console",c:"PS2",cart:null,full:null,img:wc("7/76/PS2-fat-Console-Set.png")},
+// ── PS5 ───────────────────────────────────────────────────────────────
+{n:"Gran Turismo 7",c:"PS5",cart:null,full:30,img:wp("en/5/53/Gran_Turismo_7_cover.jpg")},
+{n:"Spider-Man Miles Morales",c:"PS5",cart:null,full:20,img:wp("en/8/8b/Spider-Man_Miles_Morales_cover.jpg")},
+{n:"Astro Bot",c:"PS5",cart:null,full:40,img:wp("en/d/dc/Astro_Bot_cover_art.jpg")},
+{n:"Elden Ring",c:"PS5",cart:null,full:25,img:wp("en/b/b9/Elden_Ring_Box_art.jpg")},
+{n:"Spider-Man 2",c:"PS5",cart:null,full:30,img:wp("en/2/2b/Marvel%27s_Spider-Man_2_cover_art.jpg")},
+{n:"The Last of Us Part 1",c:"PS5",cart:null,full:30,img:wp("en/5/52/The_Last_of_Us_Part_I_cover.jpg")},
+{n:"The Last of Us Part 2 Remastered",c:"PS5",cart:null,full:30,img:wp("en/2/27/The_Last_of_Us_Part_II_Remastered_cover_art.jpg")},
+{n:"Death Stranding",c:"PS5",cart:null,full:25,img:wp("en/3/30/Death_Stranding.jpg")},
+{n:"Dragon Ball Sparking Zero",c:"PS5",cart:null,full:25,img:wp("en/a/aa/Super_Smash_Bros._Ultimate.jpg")},
+// ── PSP/VITA ──────────────────────────────────────────────────────────
+{n:"PSP console",c:"PSP/Vita",cart:54.90,full:84.90,img:wc("0/01/Sony-PSP-1000-Body.jpg")},
+{n:"PS Vita",c:"PSP/Vita",cart:119.90,full:150,img:wc("4/4f/PlayStation-Vita-1101-FL.jpg")},
+{n:"PSP Gran Turismo Edition",c:"PSP/Vita",cart:69.90,full:89.90,img:wp("en/2/24/Gran_Turismo_PSP_box_art.jpg")},
+{n:"PSP Tron Edition",c:"PSP/Vita",cart:64.90,full:89.90,img:wc("0/01/Sony-PSP-1000-Body.jpg")},
+{n:"PSP Hannah Montana",c:"PSP/Vita",cart:null,full:119.90,img:wc("0/01/Sony-PSP-1000-Body.jpg")},
+{n:"PS Vita OLED",c:"PSP/Vita",cart:150,full:180,img:wc("4/4f/PlayStation-Vita-1101-FL.jpg")},
+];
+
+// ─── UI ──────────────────────────────────────────────────────────────
+const cons=["Tous",...[...new Set(G.map(g=>g.c))]];
+let active="Tous";
+const filEl=document.getElementById("fil");
+cons.forEach(c=>{
+  const b=document.createElement("button");
+  b.className="fb"+(c==="Tous"?" active":"");
+  b.textContent=c;
+  b.onclick=()=>{active=c;document.querySelectorAll(".fb").forEach(x=>x.classList.remove("active"));b.classList.add("active");render();};
+  filEl.appendChild(b);
+});
+
+function buy(p){if(!p)return null;return(p/2).toFixed(2)+"€ – "+(p/1.5).toFixed(2)+"€";}
+
+function render(){
+  const q=document.getElementById("s").value.toLowerCase();
+  const fil=G.filter(g=>(active==="Tous"||g.c===active)&&g.n.toLowerCase().includes(q));
+  document.getElementById("cnt").textContent=fil.length+" résultats";
+  const grid=document.getElementById("grid");
+  grid.innerHTML="";
+  fil.forEach(g=>{
+    const p=g.full||g.cart;
+    const b=buy(p);
+    const d=document.createElement("div");
+    d.className="card";
+    d.innerHTML=`<div class="iw">
+      <span class="em">🎮</span>
+      <img src="${g.img}" alt="${g.n}" loading="lazy"
+           onload="this.classList.add('loaded')"
+           onerror="this.remove()">
+      <span class="cons">${g.c}</span>
+    </div>
+    <div class="bd">
+      <div class="tt">${g.n}</div>
+      ${g.cart?`<div class="pr"><span class="pl">Cartouche</span><span class="pv">${g.cart}€</span></div>`:""}
+      ${g.full?`<div class="pr"><span class="pl">Complet</span><span class="pv">${g.full}€</span></div>`:""}
+      ${b?`<div class="buy">💰 Acheter: ${b}</div>`:""}
+    </div>`;
+    grid.appendChild(d);
+  });
+}
+render();
+</script>
+
+</body>
+</html>
