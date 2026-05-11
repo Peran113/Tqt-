@@ -46,9 +46,7 @@ header p{font-size:12px;color:#6b6b85;margin-top:3px}
 <div class="grid" id="grid"></div>
 
 <script>
-// wsrv.nl proxy — url param doit contenir https:// sinon refusé
-function wp(path){return "https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/"+path+"&w=300&h=220&fit=cover&output=jpg";}
-function wc(path){return "https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/commons/"+path+"&w=300&h=220&fit=cover&output=jpg";}
+const RAWG_KEY = ""; // Colle ta clé gratuite ici → rawg.io/apidocs
 
 const CONS_COLORS={
   "Game Boy":"#8b5cf6","GBA":"#7c3aed","SNES":"#6d28d9","NES":"#dc2626",
@@ -60,14 +58,53 @@ const CONS_COLORS={
 function makeSvgPlaceholder(name,cons){
   const col=CONS_COLORS[cons]||"#6c63ff";
   const words=name.split(" ");
-  const lines=[];
-  let cur="";
+  const lines=[];let cur="";
   words.forEach(w=>{if((cur+" "+w).trim().length>14&&cur){lines.push(cur.trim());cur=w;}else{cur=(cur+" "+w).trim();}});
   if(cur)lines.push(cur.trim());
   const mid=lines.map((l,i)=>`<text x="50%" y="${50+(i-(lines.length-1)/2)*18}%" dominant-baseline="middle" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="sans-serif">${l}</text>`).join("");
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="220"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${col}"/><stop offset="100%" stop-color="${col}88"/></linearGradient></defs><rect width="300" height="220" fill="url(#g)"/><rect x="10" y="10" width="280" height="200" rx="8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>${mid}</svg>`;
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
+
+// Cache localStorage pour ne pas refaire les appels RAWG
+const _cache = JSON.parse(localStorage.getItem("rg_img")||"{}");
+
+// Mots à enlever du nom pour mieux chercher sur RAWG
+const STRIP = /\b(Game Boy|GBA|SNES|NES|N64|GameCube|DS|3DS|Wii U|Wii|Switch 2|Switch|PS1|PS2|PS5|PSP|Vita|GB|GBC|Original|Pocket|Micro|console|HD|3D|DX|Deluxe|Ultimate)\b/gi;
+
+async function rawgImg(name){
+  if(_cache[name]!==undefined)return _cache[name];
+  const q=name.replace(STRIP,"").replace(/\s+/g," ").trim();
+  try{
+    const key=RAWG_KEY?`&key=${RAWG_KEY}`:"";
+    const r=await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(q)}&page_size=1${key}`);
+    const d=await r.json();
+    const img=d.results?.[0]?.background_image||null;
+    _cache[name]=img;
+    localStorage.setItem("rg_img",JSON.stringify(_cache));
+    return img;
+  }catch(e){_cache[name]=null;return null;}
+}
+
+// Observateur pour charger les images uniquement quand elles sont visibles
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      observer.unobserve(e.target);
+      const el=e.target;
+      const name=el.dataset.name;
+      const cons=el.dataset.cons;
+      rawgImg(name).then(url=>{
+        if(url){el.src=url;el.onload=()=>el.classList.add("loaded");}
+        else{el.src=makeSvgPlaceholder(name,cons);el.classList.add("loaded");}
+      });
+    }
+  });
+},{rootMargin:"150px"});
+
+// wp/wc gardés pour compatibilité mais plus utilisés
+function wp(p){return "";}
+function wc(p){return "";}
 
 const G=[
 // ── GAME BOY ──────────────────────────────────────────────────────────
@@ -485,9 +522,7 @@ function render(){
     const d=document.createElement("div");
     d.className="card";
     d.innerHTML=`<div class="iw">
-      <img src="${g.img}" alt="${g.n}" loading="lazy"
-           onload="this.classList.add('loaded')"
-           onerror="this.src=makeSvgPlaceholder('${g.n.replace(/'/g,"\\'")}','${g.c}');this.classList.add('loaded')">
+      <img data-name="${g.n.replace(/"/g,'&quot;')}" data-cons="${g.c}" alt="${g.n}" src="${makeSvgPlaceholder(g.n,g.c)}">
       <span class="cons">${g.c}</span>
     </div>
     <div class="bd">
@@ -497,6 +532,7 @@ function render(){
       ${b?`<div class="buy">💰 Acheter: ${b}</div>`:""}
     </div>`;
     grid.appendChild(d);
+    observer.observe(d.querySelector("img"));
   });
 }
 render();
