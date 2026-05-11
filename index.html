@@ -67,7 +67,8 @@ function makeSvgPlaceholder(name,cons){
 const _cache=JSON.parse(localStorage.getItem("rg_img_v3")||"{}");
 const STRIP=/\b(Game Boy|GBA|SNES|NES|N64|GameCube|DS|3DS|Wii U|Wii|Switch 2|Switch|PS1|PS2|PS5|PSP|Vita|GB|GBC|Original|Pocket|Micro|console|HD|DX)\b/gi;
 
-async function gameImg(name){
+async function gameImg(name,preset){
+  if(preset)return preset;
   if(_cache[name]!==undefined)return _cache[name];
   const q=name.replace(STRIP,"").replace(/\s+/g," ").trim();
   if(!q){_cache[name]=null;return null;}
@@ -89,7 +90,7 @@ const observer=new IntersectionObserver((entries)=>{
     if(e.isIntersecting){
       observer.unobserve(e.target);
       const el=e.target;
-      gameImg(el.dataset.name).then(url=>{
+      gameImg(el.dataset.name,el.dataset.img||"").then(url=>{
         if(url){el.src=url;el.onload=()=>el.classList.add("loaded");}
         else{el.src=makeSvgPlaceholder(el.dataset.name,el.dataset.cons);el.classList.add("loaded");}
       });
@@ -97,8 +98,8 @@ const observer=new IntersectionObserver((entries)=>{
   });
 },{rootMargin:"150px"});
 
-function wp(p){return "";}
-function wc(p){return "";}
+function wp(p){return "https://upload.wikimedia.org/wikipedia/en/"+p;}
+function wc(p){return "https://upload.wikimedia.org/wikipedia/commons/"+p;}
 
 const G=[
 // ── GAME BOY ──────────────────────────────────────────────────────────
@@ -516,7 +517,7 @@ function render(){
     const d=document.createElement("div");
     d.className="card";
     d.innerHTML=`<div class="iw">
-      <img data-name="${g.n.replace(/"/g,'&quot;')}" data-cons="${g.c}" alt="${g.n}" src="${makeSvgPlaceholder(g.n,g.c)}">
+      <img data-name="${g.n.replace(/"/g,'&quot;')}" data-cons="${g.c}" data-img="${(g.img||'').replace(/"/g,'&quot;')}" alt="${g.n}" src="${makeSvgPlaceholder(g.n,g.c)}">
       <span class="cons">${g.c}</span>
     </div>
     <div class="bd">
