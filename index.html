@@ -21,7 +21,7 @@ header p{font-size:12px;color:#6b6b85;margin-top:3px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:12px}
 .card{background:#16161f;border:1px solid #252535;border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s}
 .card:hover{transform:translateY(-2px);border-color:#6c63ff}
-.iw{width:100%;height:118px;background:#0d0d18;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.iw{width:100%;height:200px;background:#0d0d18;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .iw img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;opacity:0;transition:opacity .2s}
 .iw img.loaded{opacity:1}
 .cons{position:absolute;top:4px;left:4px;background:rgba(108,99,255,.9);color:#fff;font-size:8px;padding:2px 6px;border-radius:8px;z-index:2;font-weight:600}
@@ -46,7 +46,10 @@ header p{font-size:12px;color:#6b6b85;margin-top:3px}
 <div class="grid" id="grid"></div>
 
 <script>
-const RAWG_KEY = "0a1c73b0581d416d9853279817dde520";
+// ── IGDB – vraies jaquettes boîte ─────────────────────────────────────
+// Clés gratuites : dev.twitch.tv → Applications → Enregistrer une app
+const IGDB_CLIENT_ID     = "";
+const IGDB_CLIENT_SECRET = "";
 
 const CONS_COLORS={
   "Game Boy":"#8b5cf6","GBA":"#7c3aed","SNES":"#6d28d9","NES":"#dc2626",
@@ -62,23 +65,48 @@ function makeSvgPlaceholder(name,cons){
   words.forEach(w=>{if((cur+" "+w).trim().length>14&&cur){lines.push(cur.trim());cur=w;}else{cur=(cur+" "+w).trim();}});
   if(cur)lines.push(cur.trim());
   const mid=lines.map((l,i)=>`<text x="50%" y="${50+(i-(lines.length-1)/2)*18}%" dominant-baseline="middle" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="sans-serif">${l}</text>`).join("");
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="220"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${col}"/><stop offset="100%" stop-color="${col}88"/></linearGradient></defs><rect width="300" height="220" fill="url(#g)"/><rect x="10" y="10" width="280" height="200" rx="8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>${mid}</svg>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="264" height="374"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${col}"/><stop offset="100%" stop-color="${col}88"/></linearGradient></defs><rect width="264" height="374" fill="url(#g)"/><rect x="10" y="10" width="244" height="354" rx="8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>${mid}</svg>`;
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
 
-const _cache = JSON.parse(localStorage.getItem("rg_img")||"{}");
-const STRIP = /\b(Game Boy|GBA|SNES|NES|N64|GameCube|DS|3DS|Wii U|Wii|Switch 2|Switch|PS1|PS2|PS5|PSP|Vita|GB|GBC|Original|Pocket|Micro|console|HD|3D|DX|Deluxe|Ultimate)\b/gi;
+const _cache=JSON.parse(localStorage.getItem("rg_img_v2")||"{}")
+const STRIP=/\b(Game Boy|GBA|SNES|NES|N64|GameCube|DS|3DS|Wii U|Wii|Switch 2|Switch|PS1|PS2|PS5|PSP|Vita|GB|GBC|Original|Pocket|Micro|console|HD|3D|DX|Deluxe|Ultimate)\b/gi;
 
-async function rawgImg(name){
+async function getIGDBToken(){
+  const tok=localStorage.getItem("igdb_tok");
+  const exp=parseInt(localStorage.getItem("igdb_tok_exp")||"0");
+  if(tok&&Date.now()<exp)return tok;
+  if(!IGDB_CLIENT_ID||!IGDB_CLIENT_SECRET)return null;
+  try{
+    const r=await fetch("https://id.twitch.tv/oauth2/token",{
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:`client_id=${IGDB_CLIENT_ID}&client_secret=${IGDB_CLIENT_SECRET}&grant_type=client_credentials`
+    });
+    const d=await r.json();
+    if(!d.access_token)return null;
+    localStorage.setItem("igdb_tok",d.access_token);
+    localStorage.setItem("igdb_tok_exp",(Date.now()+(d.expires_in-3600)*1000).toString());
+    return d.access_token;
+  }catch(e){return null;}
+}
+
+async function igdbImg(name){
   if(_cache[name]!==undefined)return _cache[name];
+  const token=await getIGDBToken();
+  if(!token){_cache[name]=null;return null;}
   const q=name.replace(STRIP,"").replace(/\s+/g," ").trim();
   try{
-    const key=RAWG_KEY?`&key=${RAWG_KEY}`:"";
-    const r=await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(q)}&page_size=1${key}`);
+    const r=await fetch("https://api.igdb.com/v4/games",{
+      method:"POST",
+      headers:{"Client-ID":IGDB_CLIENT_ID,"Authorization":`Bearer ${token}`,"Content-Type":"text/plain"},
+      body:`fields cover.image_id; search "${q}"; limit 1;`
+    });
     const d=await r.json();
-    const img=d.results?.[0]?.background_image||null;
+    const imgId=d[0]?.cover?.image_id;
+    const img=imgId?`https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg`:null;
     _cache[name]=img;
-    localStorage.setItem("rg_img",JSON.stringify(_cache));
+    localStorage.setItem("rg_img_v2",JSON.stringify(_cache));
     return img;
   }catch(e){_cache[name]=null;return null;}
 }
@@ -88,11 +116,9 @@ const observer=new IntersectionObserver((entries)=>{
     if(e.isIntersecting){
       observer.unobserve(e.target);
       const el=e.target;
-      const name=el.dataset.name;
-      const cons=el.dataset.cons;
-      rawgImg(name).then(url=>{
+      igdbImg(el.dataset.name).then(url=>{
         if(url){el.src=url;el.onload=()=>el.classList.add("loaded");}
-        else{el.src=makeSvgPlaceholder(name,cons);el.classList.add("loaded");}
+        else{el.src=makeSvgPlaceholder(el.dataset.name,el.dataset.cons);el.classList.add("loaded");}
       });
     }
   });
